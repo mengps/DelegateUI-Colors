@@ -15,6 +15,7 @@ qt_add_qml_module(${PROJECT_NAME}
     RESOURCE_PREFIX "/"
     QML_FILES
         Example.qml
+        DelColorPicker.qml
     SOURCES
         main.cpp
 )
