@@ -9,8 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 6.5 REQUIRED COMPONENTS Gui)
 
 qt_add_library(${PROJECT_NAME} STATIC
-    delcolorgenerate.h
-    delcolorgenerate.cpp
+    delcolorgenerator.h
+    delcolorgenerator.cpp
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

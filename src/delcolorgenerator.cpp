@@ -1,4 +1,6 @@
-#include "delcolorgenerate.h"
+#include "delcolorgenerator.h"
+
+#include <QHash>
 #include <qdebug.h>
 
 static const auto g_hueStep = 2; // 色相阶梯
@@ -8,6 +10,11 @@ static const auto g_brightnessStep1 = 0.05; // 亮度阶梯，浅色部分
 static const auto g_brightnessStep2 = 0.15; // 亮度阶梯，深色部分
 static const auto g_lightColorCount = 5; // 浅色数量，主色上
 static const auto g_darkColorCount = 4; // 深色数量，主色下
+
+[[maybe_unused]] static auto qHash(DelColorGenerator::Preset preset)
+{
+    return static_cast<std::underlying_type<DelColorGenerator::Preset>::type>(DelColorGenerator::Preset::Preset_Red);
+}
 
 static QColor mix(const QColor &rgb1, const QColor &rgb2, int amount)
 {
@@ -95,6 +102,31 @@ DelColorGenerator::~DelColorGenerator()
 
 }
 
+QList<QColor> DelColorGenerator::generate(DelColorGenerator::Preset color, bool light, const QColor &background)
+{
+    using PresetTableType = QHash<DelColorGenerator::Preset, QColor>;
+    static PresetTableType g_presetTable {
+        { DelColorGenerator::Preset::Preset_Red,      QColor(0xF5222D) },
+        { DelColorGenerator::Preset::Preset_Volcano,  QColor(0xFA541C) },
+        { DelColorGenerator::Preset::Preset_Orange,   QColor(0xFA8C16) },
+        { DelColorGenerator::Preset::Preset_Gold,     QColor(0xFAAD14) },
+        { DelColorGenerator::Preset::Preset_Yellow,   QColor(0xFADB14) },
+        { DelColorGenerator::Preset::Preset_Lime,     QColor(0xA0D911) },
+        { DelColorGenerator::Preset::Preset_Green,    QColor(0x52C41A) },
+        { DelColorGenerator::Preset::Preset_Cyan,     QColor(0x13C2C2) },
+        { DelColorGenerator::Preset::Preset_Blue,     QColor(0x1677FF) },
+        { DelColorGenerator::Preset::Preset_Geekblue, QColor(0x2F54EB) },
+        { DelColorGenerator::Preset::Preset_Purple,   QColor(0x722ED1) },
+        { DelColorGenerator::Preset::Preset_Magenta,  QColor(0xEB2F96) },
+        { DelColorGenerator::Preset::Preset_Grey,     QColor(0x666666) }
+    };
+
+    if (g_presetTable.contains(color))
+        return generate(g_presetTable[color], light, background);
+    else
+        return generate(QColor::Invalid, light, background);
+}
+
 QList<QColor> DelColorGenerator::generate(const QColor &color, bool light, const QColor &background)
 {
     QList<QColor> patterns;
@@ -102,7 +134,7 @@ QList<QColor> DelColorGenerator::generate(const QColor &color, bool light, const
     for (auto i = g_lightColorCount; i > 0; i -= 1) {
         const auto colorString = QColor::fromHsvF(getHue(hsv, i, true) / 360.0,
                                                   getSaturation(hsv, i, true),
-                                                  getValue(hsv, i, true)).name();
+                                                  std::max(getValue(hsv, i, true), 0.)).name();
         patterns.append(colorString);
     }
     patterns.append(color.name());
@@ -110,7 +142,7 @@ QList<QColor> DelColorGenerator::generate(const QColor &color, bool light, const
     for (auto i = 1; i <= g_darkColorCount; i += 1) {
         const auto colorString = QColor::fromHsvF(getHue(hsv, i) / 360.0,
                                                   getSaturation(hsv, i),
-                                                  getValue(hsv, i)).name();
+                                                  std::max(getValue(hsv, i), 0.)).name();
         patterns.append(colorString);
     }
 
@@ -130,7 +162,7 @@ QList<QColor> DelColorGenerator::generate(const QColor &color, bool light, const
         };
         QList<QColor> darkColorString;
         std::for_each(g_darkColorMap.begin(), g_darkColorMap.end(), [&patterns, &darkColorString, background](const std::tuple<int, qreal> &value){
-            darkColorString.append(mix(background.isValid() ? background : QColor(20, 20, 20),
+            darkColorString.append(mix(background.isValid() ? background : QColor(0x141414),
                                        patterns[std::get<0>(value)],
                                        std::get<1>(value) * 100));
         });
