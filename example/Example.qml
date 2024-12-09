@@ -23,8 +23,8 @@ Window {
             id: circle
             x: r - width
             y: -height * 0.5
-            width: r * 2
-            height: r * 2
+            width: 0
+            height: 0
             radius: width * 0.5
             color: "#141414"
             property real r: Math.sqrt(parent.width * parent.width + parent.height * parent.height)
@@ -216,7 +216,7 @@ Window {
                         Connections {
                             target: window
                             function onLightChanged() {
-                                rootItem.model = colorGenerator.generate(modelData.color, window.light, window.light ? "#f0f0f0" : "#141414");
+                                rootItem.model = colorGenerator.generate(modelData.color, window.light, window.light ? "#ffffff" : "#141414");
                             }
                         }
                     }
